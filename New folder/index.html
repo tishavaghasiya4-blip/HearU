@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HearU - Your Thoughts Matter</title>
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            200: '#99f6e4',
+                            300: '#5eead4',
+                            400: '#2dd4bf',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        },
+                        secondary: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                        },
+                        pastel: {
+                            mint: '#e8f5e9',
+                            lavender: '#f3e5f5',
+                            peach: '#fff3e0',
+                            sky: '#e3f2fd',
+                            rose: '#fce4ec',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'breathe': 'breathe 4s ease-in-out infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        breathe: {
+                            '0%, 100%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.1)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-pastel-mint via-white to-pastel-lavender min-h-screen font-sans text-gray-700 overflow-x-hidden">
+
+    <!-- Web Components -->
+    <script src="components/navbar.js"></script>
+    <script src="components/crisis-button.js"></script>
+    <script src="components/anonymous-toggle.js"></script>
+    <script src="components/mood-tracker.js"></script>
+
+    <hearu-navbar></hearu-navbar>
+    <hearu-crisis-button></hearu-crisis-button>
+
+    <!-- Hero Section -->
+    <section id="home" class="pt-24 pb-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-30 pointer-events-none">
+            <div class="absolute top-20 left-10 w-72 h-72 bg-primary-200 rounded-full mix-blend-multiply filter blur-xl animate-float"></div>
+            <div class="absolute top-40 right-10 w-72 h-72 bg-secondary-200 rounded-full mix-blend-multiply filter blur-xl animate-float" style="animation-delay: 2s;"></div>
+            <div class="absolute -bottom-8 left-1/2 w-72 h-72 bg-pastel-peach rounded-full mix-blend-multiply filter blur-xl animate-float" style="animation-delay: 4s;"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto relative z-10">
+            <div class="text-center space-y-8">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 backdrop-blur-sm border border-primary-100 shadow-sm mb-4">
+                    <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
+                    <span class="text-sm font-medium text-primary-700">Anonymous Mode Available</span>
+                    <hearu-anonymous-toggle></hearu-anonymous-toggle>
+                </div>
+                
+                <h1 class="text-5xl md:text-7xl font-bold text-gray-800 tracking-tight">
+                    HearU <span class="text-primary-500">.</span>
+                </h1>
+                <p class="text-2xl md:text-3xl font-light text-secondary-600 italic">
+                    "Your Thoughts Matter"
+                </p>
+                <p class="max-w-2xl mx-auto text-lg text-gray-600 leading-relaxed">
+                    Your personalized mental health sanctuary. Track moods, find peace in AR meditation, 
+                    connect with peers anonymously, and discover the unique <span class="font-semibold text-primary-600">Emotion Weather Map</span> 
+                    showing real-time collective mental wellness.
+                </p>
+                
+                <div class="flex flex-wrap justify-center gap-4 mt-8">
+                    <button onclick="scrollToSection('mood-tracker')" class="px-8 py-4 bg-primary-500 text-white rounded-2xl font-medium shadow-lg shadow-primary-200 hover:bg-primary-600 transform hover:scale-105 transition-all duration-300 flex items-center gap-2">
+                        <i data-feather="heart"></i> Start Your Journey
+                    </button>
+                    <button onclick="scrollToSection('ar-meditation')" class="px-8 py-4 bg-white text-secondary-600 border-2 border-secondary-200 rounded-2xl font-medium hover:bg-secondary-50 transform hover:scale-105 transition-all duration-300 flex items-center gap-2">
+                        <i data-feather="aperture"></i> Try AR Meditation
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Emotion Weather Map (Hackathon Twist) -->
+    <section id="emotion-weather" class="py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="bg-white/70 backdrop-blur-md rounded-3xl p-8 shadow-xl border border-white/50">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                            <i data-feather="cloud" class="text-primary-500"></i>
+                            Emotion Weather Map
+                        </h2>
+                        <p class="text-sm text-gray-500 mt-1">Real-time collective mood visualization of our community</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <span class="px-3 py-1 rounded-full bg-pastel-mint text-green-700 text-xs font-medium">Calm: 45%</span>
+                        <span class="px-3 py-1 rounded-full bg-pastel-peach text-orange-700 text-xs font-medium">Stressed: 23%</span>
+                        <span class="px-3 py-1 rounded-full bg-pastel-lavender text-purple-700 text-xs font-medium">Hopeful: 32%</span>
+                    </div>
+                </div>
+                <div id="weather-canvas" class="h-64 rounded-2xl bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 relative overflow-hidden">
+                    <canvas id="emotionCanvas" class="w-full h-full"></canvas>
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <p class="text-gray-400 text-sm">Live community emotional atmosphere</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mood Tracker Section -->
+    <section id="mood-tracker" class="py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2">
+                    <hearu-mood-tracker></hearu-mood-tracker>
+                </div>
+                <div class="space-y-6">
+                    <!-- Stress Level Monitor -->
+                    <div class="bg-white/80 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-pastel-mint">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i data-feather="activity" class="text-red-400"></i>
+                            Passive Stress Monitor
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Screen Time Today</span>
+                                <span class="font-medium text-primary-600" id="screen-time">4h 23m</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-primary-400 h-2 rounded-full" style="width: 65%"></div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Typing Rhythm</span>
+                                <span class="font-medium text-secondary-600" id="typing-rhythm">Regular</span>
+                            </div>
+                            <div class="p-3 bg-pastel-mint rounded-xl text-sm text-green-700">
+                                <i data-feather="info" class="inline w-4 h-4 mr-1"></i>
+                                Your patterns suggest moderate focus. Consider a break in 30 minutes.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Daily Streak -->
+                    <div class="bg-gradient-to-br from-secondary-100 to-primary-100 rounded-3xl p-6 shadow-lg">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2">Mindfulness Streak</h3>
+                        <div class="flex items-center gap-4">
+                            <div class="text-4xl font-bold text-secondary-600" id="streak-count">12</div>
+                            <div class="text-sm text-gray-600">days in a row<br>Keep it up! 🔥</div>
+                        </div>
+                        <div class="mt-4 flex gap-1">
+                            <div class="h-8 w-full bg-secondary-300 rounded-lg"></div>
+                            <div class="h-8 w-full bg-secondary-300 rounded-lg"></div>
+                            <div class="h-8 w-full bg-secondary-300 rounded-lg"></div>
+                            <div class="h-8 w-full bg-secondary-300 rounded-lg"></div>
+                            <div class="h-8 w-full bg-gray-300 rounded-lg opacity-50"></div>
+                            <div class="h-8 w-full bg-gray-300 rounded-lg opacity-50"></div>
+                            <div class="h-8 w-full bg-gray-300 rounded-lg opacity-50"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Assistant & Journal -->
+    <section id="ai-assistant" class="py-12 px-4 sm:px-6 lg:px-8 bg-white/40">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- AI Emotional Assistant -->
+                <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-pastel-lavender">
+                    <div class="bg-gradient-to-r from-secondary-500 to-primary-500 p-4 text-white">
+                        <h3 class="font-semibold flex items-center gap-2">
+                            <i data-feather="cpu"></i>
+                            AI Emotional Assistant
+                        </h3>
+                    </div>
+                    <div class="h-96 flex flex-col">
+                        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-full bg-secondary-100 flex items-center justify-center">
+                                    <i data-feather="bot" class="w-4 h-4 text-secondary-600"></i>
+                                </div>
+                                <div class="bg-gray-100 rounded-2xl rounded-tl-none p-3 text-sm text-gray-700 max-w-[80%]">
+                                    Hello! I'm here to listen. How are you feeling right now? Remember, this is a safe space. 🌸
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4 border-t border-gray-100">
+                            <div class="flex gap-2">
+                                <input type="text" id="chat-input" placeholder="Share your thoughts..." 
+                                    class="flex-1 px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-primary-400 bg-gray-50">
+                                <button onclick="sendMessage()" class="px-4 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors">
+                                    <i data-feather="send" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <div class="flex gap-2 mt-2 overflow-x-auto pb-2">
+                                <button onclick="quickChat('I feel anxious')" class="px-3 py-1 text-xs bg-pastel-rose text-red-600 rounded-full whitespace-nowrap">Feeling anxious</button>
+                                <button onclick="quickChat('I need motivation')" class="px-3 py-1 text-xs bg-pastel-peach text-orange-600 rounded-full whitespace-nowrap">Need motivation</button>
+                                <button onclick="quickChat('Help me sleep')" class="px-3 py-1 text-xs bg-pastel-lavender text-purple-600 rounded-full whitespace-nowrap">Can't sleep</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Journaling -->
+                <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-pastel-sky">
+                    <div class="bg-gradient-to-r from-primary-500 to-blue-400 p-4 text-white flex justify-between items-center">
+                        <h3 class="font-semibold flex items-center gap-2">
+                            <i data-feather="book-open"></i>
+                            Interactive Journal
+                        </h3>
+                        <span class="text-xs bg-white/20 px-2 py-1 rounded-lg">Auto-saved</span>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Today's Prompt</label>
+                            <p class="text-gray-600 italic bg-pastel-mint p-3 rounded-xl" id="journal-prompt">
+                                "What small moment brought you peace today?"
+                            </p>
+                        </div>
+                        <textarea id="journal-entry" rows="8" 
+                            class="w-full p-4 rounded-xl border border-gray-200 focus:outline-none focus:border-primary-400 resize-none bg-gray-50"
+                            placeholder="Start writing... your thoughts are encrypted and safe here."></textarea>
+                        <div class="flex justify-between items-center mt-4">
+                            <div class="flex gap-2">
+                                <button onclick="insertTimestamp()" class="p-2 text-gray-400 hover:text-primary-500 transition-colors">
+                                    <i data-feather="clock" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="changePrompt()" class="p-2 text-gray-400 hover:text-primary-500 transition-colors">
+                                    <i data-feather="refresh-cw" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <button onclick="saveJournal()" class="px-6 py-2 bg-primary-500 text-white rounded-xl hover:bg-primary-600 transition-colors flex items-center gap-2">
+                                <i data-feather="save" class="w-4 h-4"></i> Save Entry
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AR Meditation & Gamification -->
+    <section id="ar-meditation" class="py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- AR Meditation -->
+                <div class="lg:col-span-2 bg-black rounded-3xl overflow-hidden shadow-2xl relative">
+                    <video id="ar-video" class="w-full h-[500px] object-cover" autoplay playsinline muted></video>
+                    <canvas id="ar-canvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
+                    
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-8">
+                        <h3 class="text-white text-2xl font-bold mb-2">AR Meditation Space</h3>
+                        <p class="text-gray-300 mb-4">Breathe with the floating lotus. The petals respond to your calmness.</p>
+                        
+                        <div class="flex gap-4">
+                            <button onclick="toggleAR()" id="ar-toggle" class="px-6 py-3 bg-white/20 backdrop-blur-md text-white rounded-xl hover:bg-white/30 transition-all flex items-center gap-2">
+                                <i data-feather="camera"></i> Start Camera
+                            </button>
+                            <button onclick="changeAREnvironment()" class="px-6 py-3 bg-primary-500/80 backdrop-blur-md text-white rounded-xl hover:bg-primary-500 transition-all">
+                                <i data-feather="image" class="inline w-4 h-4 mr-1"></i> Change Scene
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Breathing Guide Overlay -->
+                    <div id="breathing-guide" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 transition-opacity duration-500">
+                        <div class="w-32 h-32 rounded-full border-4 border-white/30 flex items-center justify-center animate-breathe">
+                            <div class="w-24 h-24 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                                <span class="text-white text-sm font-medium">Breathe</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gamified Exercises -->
+                <div class="space-y-4">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Mind Gym</h3>
+                    
+                    <div class="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-primary-400 hover:shadow-xl transition-shadow cursor-pointer" onclick="startBreathingGame()">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-semibold text-gray-800">Breathing Sync</h4>
+                            <span class="text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded">Level 3</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">Match your breath with the rhythm. Earn calm points!</p>
+                        <div class="flex items-center gap-2 text-sm text-primary-600">
+                            <i data-feather="award" class="w-4 h-4"></i>
+                            <span>Best: 45 breaths</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-secondary-400 hover:shadow-xl transition-shadow cursor-pointer" onclick="startGratitudeGame()">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-semibold text-gray-800">Gratitude Garden</h4>
+                            <span class="text-xs bg-secondary-100 text-secondary-700 px-2 py-1 rounded">Daily</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">Plant a flower for each gratitude. Grow your garden.</p>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                            <div class="bg-secondary-400 h-2 rounded-full" style="width: 60%"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">3/5 completed today</p>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-6 shadow-lg border-l-4 border-yellow-400 hover:shadow-xl transition-shadow cursor-pointer" onclick="startCognitiveGame()">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-semibold text-gray-800">Thought Reframer</h4>
+                            <span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">CBT</span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-3">Challenge negative thoughts. AI-powered cognitive support.</p>
+                        <div class="flex gap-1 mt-2">
+                            <div class="w-6 h-6 rounded bg-yellow-400 flex items-center justify-center text-white text-xs">★</div>
+                            <div class="w-6 h-6 rounded bg-yellow-400 flex items-center justify-center text-white text-xs">★</div>
+                            <div class="w-6 h-6 rounded bg-gray-300 flex items-center justify-center text-white text-xs">★</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Community & Learning -->
+    <section id="community" class="py-12 px-4 sm:px-6 lg:px-8 bg-white/40">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Anonymous Community -->
+                <div class="bg-white rounded-3xl shadow-xl p-6 border border-pastel-rose">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                            <i data-feather="users" class="text-rose-400"></i>
+                            Whisper Garden
+                        </h3>
+                        <span class="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">Anonymous Only</span>
+                    </div>
+                    
+                    <div id="community-feed" class="space-y-4 max-h-96 overflow-y-auto pr-2">
+                        <!-- Dynamic posts will be inserted here -->
+                        <div class="p-4 bg-pastel-mint rounded-2xl">
+                            <p class="text-sm text-gray-700 mb-2">"Today I managed to get out of bed and make coffee. Small wins matter."</p>
+                            <div class="flex justify-between items-center text-xs text-gray-500">
+                                <span>Seed #8429</span>
+                                <div class="flex gap-2">
+                                    <button class="hover:text-primary-500 flex items-center gap-1">
+                                        <i data-feather="heart" class="w-3 h-3"></i> 12
+                                    </button>
+                                    <button class="hover:text-primary-500">Support</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <div class="flex gap-2">
+                            <input type="text" id="community-input" placeholder="Share your whisper..." 
+                                class="flex-1 px-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:border-rose-300 bg-gray-50 text-sm">
+                            <button onclick="postToCommunity()" class="px-4 py-2 bg-rose-400 text-white rounded-xl hover:bg-rose-500 transition-colors">
+                                <i data-feather="send" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Learning Hub -->
+                <div class="bg-white rounded-3xl shadow-xl p-6 border border-pastel-sky">
+                    <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                        <i data-feather="book" class="text-blue-400"></i>
+                        Mental Health Learning Hub
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div class="group cursor-pointer">
+                            <div class="flex gap-4 items-start">
+                                <div class="w-16 h-16 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                    <i data-feather="sun" class="text-blue-500"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 group-hover:text-primary-600 transition-colors">Understanding Anxiety</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Learn about the fight-or-flight response and coping mechanisms.</p>
+                                    <span class="text-xs text-primary-500 mt-2 inline-block">5 min read</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="group cursor-pointer">
+                            <div class="flex gap-4 items-start">
+                                <div class="w-16 h-16 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                    <i data-feather="moon" class="text-purple-500"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 group-hover:text-primary-600 transition-colors">Sleep Hygiene 101</h4>
+                                    <p class="text-sm text-gray-600 mt-1">Science-backed techniques for better rest and recovery.</p>
+                                    <span class="text-xs text-primary-500 mt-2 inline-block">8 min read</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="group cursor-pointer">
+                            <div class="flex gap-4 items-start">
+                                <div class="w-16 h-16 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                    <i data-feather="activity" class="text-green-500"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 group-hover:text-primary-600 transition-colors">Grounding Techniques</h4>
+                                    <p class="text-sm text-gray-600 mt-1">5-4-3-2-1 method and other immediate calm-down strategies.</p>
+                                    <span class="text-xs text-primary-500 mt-2 inline-block">3 min read</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="w-full mt-6 py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-primary-400 hover:text-primary-500 transition-colors text-sm font-medium">
+                        Browse All Resources
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Daily Reflection -->
+    <section id="reflection" class="py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto">
+            <div class="bg-gradient-to-br from-pastel-lavender to-pastel-mint rounded-3xl p-8 shadow-xl text-center">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Daily Reflection</h2>
+                <p class="text-gray-600 mb-8">Take a moment to acknowledge three things you're grateful for today.</p>
+                
+                <div class="space-y-4 max-w-md mx-auto">
+                    <div class="relative">
+                        <input type="text" placeholder="1. I'm grateful for..." class="w-full px-6 py-4 rounded-xl border-2 border-white bg-white/50 focus:outline-none focus:border-secondary-400 text-center">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-2xl">🌱</span>
+                    </div>
+                    <div class="relative">
+                        <input type="text" placeholder="2. I'm grateful for..." class="w-full px-6 py-4 rounded-xl border-2 border-white bg-white/50 focus:outline-none focus:border-secondary-400 text-center">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-2xl">🌿</span>
+                    </div>
+                    <div class="relative">
+                        <input type="text" placeholder="3. I'm grateful for..." class="w-full px-6 py-4 rounded-xl border-2 border-white bg-white/50 focus:outline-none focus:border-secondary-400 text-center">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-2xl">🌳</span>
+                    </div>
+                </div>
+
+                <button onclick="submitGratitude()" class="mt-8 px-8 py-3 bg-secondary-500 text-white rounded-xl font-medium hover:bg-secondary-600 transition-all transform hover:scale-105 shadow-lg shadow-secondary-200">
+                    Plant in Garden
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white/80 backdrop-blur-md border-t border-gray-200 mt-12 py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-center md:text-left">
+                <h4 class="font-bold text-gray-800 text-lg">HearU</h4>
+                <p class="text-sm text-gray-500">Your Thoughts Matter</p>
+            </div>
+            <div class="flex gap-6 text-sm text-gray-600">
+                <a href="#" class="hover:text-primary-500 transition-colors">Privacy</a>
+                <a href="#" class="hover:text-primary-500 transition-colors">Terms</a>
+                <a href="#" class="hover:text-primary-500 transition-colors">Crisis Resources</a>
+                <a href="#" class="hover:text-primary-500 transition-colors">Contact</a>
+            </div>
+            <div class="text-xs text-gray-400">
+                © 2024 HearU. Made with 💜 for mental wellness.
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>feather.replace();</script>
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyAOIvwchZtA-G5zxzgTrbp-Ywxzxgf-xAk",
+    authDomain: "hearu-44bf9.firebaseapp.com",
+    projectId: "hearu-44bf9",
+    storageBucket: "hearu-44bf9.firebasestorage.app",
+    messagingSenderId: "939169979514",
+    appId: "1:939169979514:web:b20a4ed1b8d386cc2b6fc3",
+    measurementId: "G-HXEV8ECK4X"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+</body>
+</html>
